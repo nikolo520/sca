@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.base import Model
 
 class Company(Model):
-    id = models.CharField(primary_key=True, blank=True, max_length=40)
+    id = models.AutoField(primary_key=True)
     business_name = models.CharField(max_length=100, default='', verbose_name="Nombre de la empresa")
     trade_name = models.CharField(max_length=100, default='', verbose_name="Nombre comercial")
     is_active = models.BooleanField(default=True)
