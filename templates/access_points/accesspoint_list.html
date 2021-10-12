@@ -1,0 +1,19 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+    <h1>Puntos de acceso</h1>
+
+    {% if accesspoint_list %}
+    <ul>
+
+      {% for access_point in accesspoint_list %}
+      <li>
+        <a href="{{ access_point.get_absolute_url }}">{{ access_point.id }}</a> ({{access_point.name}})
+      </li>
+      {% endfor %}
+
+    </ul>
+    {% else %}
+      <p>No hay puntos de acceso registrados</p>
+    {% endif %} 
+{% endblock %}
