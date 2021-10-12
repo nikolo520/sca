@@ -1,0 +1,57 @@
+{% extends "base/base.html" %}
+{% block title %}
+Login
+{% endblock %}
+{% block navbar %}
+{% endblock %}
+{% block content %}
+
+<section class="vh-100">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+        <div class="card bg-dark text-white" style="border-radius: 1rem;">
+          <div class="card-body p-5 text-center">
+            {% if next %}
+                {% if user.is_authenticated %}
+                <p>Tu cuenta no tiene acceso a esta página. Para proceder,
+                  por favor inicie sesión con una cuenta que tenga acceso.</p>
+                {% else %}
+                <p>Inicie sesión para ver esta página.</p>
+                {% endif %}
+            {% endif %}
+            <div class="mb-md-3 mt-md-3 pb-5">
+            <form method="post" action="{% url 'login' %}">
+              <h2 class="fw-bold mb-2 text-uppercase">Bienvenido</h2>
+              <p class="text-white-50 mb-3">Por favor ingrese su usuario y contraseña!</p>
+
+              <div class="form-outline form-white mb-2">
+                <label class="form-label" for="username">{{ form.username.label_tag }}</label>
+                <input type="text" id="id_username" autocapitalize="none" required class="form-control form-control-lg" autocomplete="username" autofocus name="username" maxlength="15"/>
+              </div>
+
+              <div class="form-outline form-white mb-2">
+                <label class="form-label" for="password">{{ form.password.label_tag }}</label>
+                <input type="password" name="password" required autocomplete="current-password" id="id_password" class="form-control form-control-lg" />
+              </div>
+              {% if form.errors %}
+                <p>Su usuario y contraseña no coinciden. Por favor intente de nuevo.</p>
+              {% endif %}
+              <p class="small mb-3 pb-lg-2"><a class="text-white-50" href="{% url 'password_reset' %}">Olvidó su contraseña?</a></p>
+
+              <input class="btn btn-outline-light btn-lg px-5" type="submit" value="Iniciar" />
+              <input type="hidden" name="next" value="{{ next }}" />
+            </form>
+            </div>
+            <div>
+              <p class="mb-0">No tienes una cuenta? <a href="#!" class="text-white-50 fw-bold">Registrarse</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block footer %}
+{% endblock %}
