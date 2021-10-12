@@ -1,5 +1,5 @@
 apps/*/migrations/*
-
+sca/config.py
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
