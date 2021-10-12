@@ -26,12 +26,12 @@ Login
               <p class="text-white-50 mb-3">Por favor ingrese su usuario y contraseña!</p>
 
               <div class="form-outline form-white mb-2">
-                <label class="form-label" for="username">{{ form.username.label_tag }}</label>
+                <label class="form-label" for="id_username">{{ form.username.label_tag }}</label>
                 <input type="text" id="id_username" autocapitalize="none" required class="form-control form-control-lg" autocomplete="username" autofocus name="username" maxlength="15"/>
               </div>
 
               <div class="form-outline form-white mb-2">
-                <label class="form-label" for="password">{{ form.password.label_tag }}</label>
+                <label class="form-label" for="id_password">{{ form.password.label_tag }}</label>
                 <input type="password" name="password" required autocomplete="current-password" id="id_password" class="form-control form-control-lg" />
               </div>
               {% if form.errors %}
