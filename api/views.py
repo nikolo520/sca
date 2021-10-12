@@ -7,7 +7,7 @@ from rest_framework import permissions
 from apps.companies.serializers import CompanySerializer
 from rest_framework import generics, status
 from rest_framework import  status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
@@ -159,13 +159,53 @@ def validate_email(request):
 
 class obtain_auth_token(views.ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        data = JSONParser().parse(request)
+        data = JSONParser().parse(request.data)
         username = data['username']
         if username:
             user = UserProfile.objects.filter(username=username,email_is_valid=True)
             if user:
+                print("paso")
                 return super().post(request, *args, **kwargs)
             else:
                 return JsonResponse({"status":False, "message":"El usuario ha activado su cuenta, por favor valide su correo electrónico."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response([{"error_code":"1","message":"BAD REQUEST"}], status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class UserProfileListCreate(generics.ListCreateAPIView):
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_anonymous():
+            if request.user.is_staff:
+                company_current_user = request.user.company
+                self.pagination_class = StandardResultsPagination
+                self.queryset = UserProfile.objects.filter(company = company_current_user)
+                self.serializer_class = UserProfileSerializer
+                self.permission_classes = (IsAuthenticated,)
+                self.authentication_class = (TokenAuthentication,)
+                return super().get(request, *args, **kwargs)
+            else:
+                return Response([{"error_code":"1","message":"No tiene permisos"}], status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response([{"error_code":"1","message":"No tiene permisos"}], status=status.HTTP_403_FORBIDDEN)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_anonymous():
+            company_current_user = request.user.company
+            self.serializer_class = UserProfileSerializer
+            self.permission_classes = (IsAuthenticated,)
+            self.authentication_class = (TokenAuthentication,)
+            kwargs['company'] = company_current_user.id
+            return super().post(request, *args, **kwargs)
+        else:
+            return Response([{"error_code":"1","message":"No tiene permisos"}], status=status.HTTP_403_FORBIDDEN)
+
+@api_view(['GET'])
+@permission_classes((permissions.IsAuthenticated,))
+@authentication_classes((TokenAuthentication,))
+def invite(request):
+    if request.method == 'GET':
+        email=request.GET.get('email',False)
+        id=request.GET.get('ic',False)
+    else:
+        return Response([{"error_code":"1","message":"BAD REQUEST"}], status=status.HTTP_400_BAD_REQUEST)

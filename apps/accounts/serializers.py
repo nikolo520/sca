@@ -1,3 +1,4 @@
+from django.db.models import query
 from django.utils import timezone
 from apps.accounts.models import UserProfile
 from rest_framework import serializers
@@ -15,7 +16,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, required=True)
     identification = serializers.IntegerField(required=True,validators=[UniqueValidator(queryset=UserProfile.objects.all())])
     username = serializers.CharField(read_only=True,)
-    company = serializers.IntegerField()
+    company = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = UserProfile
         fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name','identification','company')
@@ -33,7 +34,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        print(validated_data)
+        print(self.__dict__)
         company = Company.objects.get(id=self.initial_data['company'])
         now = timezone.now()
         user = UserProfile.objects.create(
