@@ -1,5 +1,6 @@
 
 from apps.access_points.models import AccessPoint
+from apps.accounts.models import UserProfile
 from apps.companies.models import Company
 from rest_framework import  viewsets
 from rest_framework import permissions
@@ -20,7 +21,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic.edit import FormView
-from django.contrib.auth import login,logout,authenticate
+from django.contrib.auth import login,logout,authenticate, tokens
 from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework.authtoken.models import Token
@@ -31,7 +32,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from apps.access_points.serializers import AccessPointsSerializer
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework.authtoken import views
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
@@ -85,7 +86,6 @@ class AccessPointsListCreate(generics.ListCreateAPIView):
         self.authentication_class = (TokenAuthentication,)
         kwargs['company'] = company_current_user.id
         return super().post(request, *args, **kwargs)
-
 class Login(FormView):
     template_name = "login.html"
     form_class = AuthenticationForm
@@ -120,6 +120,8 @@ def get_access_points(request):
         data = JSONParser().parse(request)
         serializer = AccessPointsSerializer(data=data)
 
+
+
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def signup(request):
@@ -128,15 +130,42 @@ def signup(request):
         serializer_company = CompanySerializer(data=data)
         if serializer_company.is_valid():
             serializer_company.save()
-            print(serializer_company.data)
             data['company'] = serializer_company.data['id']
             serializers_user = UserProfileSerializer(data=data)
             if serializers_user.is_valid():
                 serializers_user.save()
-                return JsonResponse({"status":True,"message":"El registro fue exitoso"}, status=201)
-            company = Company.objects.get(id=serializer_company.data['id'])
-            company.delete()
-            return JsonResponse(serializers_user.errors, status=400)
-        return JsonResponse(serializer_company.errors, status=400)
+                return JsonResponse({"status":True,"message":"El registro fue exitoso"}, status=status.HTTP_201_CREATED)
+            return JsonResponse(serializers_user.errors, status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse(serializer_company.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    else:
+        return Response({"status":False,"message":"Bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def validate_email(request):
+    token=request.GET.get('token',False)
+    id=request.GET.get('ut',False)
+    if token and id:
+        token_generator = tokens.PasswordResetTokenGenerator()
+        user_check = UserProfile.objects.get(id=id)
+        is_valid = token_generator.check_token(user=user_check,token=token)
+        if is_valid:
+            user_check.email_is_valid = True
+            user_check.save()
+            JsonResponse({"status":True, "message":"Se activo el usuario exitosamente"}, status=status.HTTP_200_OK)
+        return JsonResponse({"status":False, "message":"Error al intentar activar el usuario"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return Response([{"error_code":"1","message":"BAD REQUEST"}], status=status.HTTP_400_BAD_REQUEST)
+
+class obtain_auth_token(views.ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        data = JSONParser().parse(request)
+        username = data['username']
+        if username:
+            user = UserProfile.objects.filter(username=username,email_is_valid=True)
+            if user:
+                return super().post(request, *args, **kwargs)
+            else:
+                return JsonResponse({"status":False, "message":"El usuario ha activado su cuenta, por favor valide su correo electrónico."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response([{"error_code":"1","message":"BAD REQUEST"}], status=status.HTTP_400_BAD_REQUEST)
