@@ -1,0 +1,33 @@
+.profile_photo {
+    max-height: 10rem;
+    max-width: 10rem;
+}
+
+.fix-bottom {
+    bottom: 0;
+    position: absolute;
+    width: 100%;
+}
+
+.login{
+    border-radius: 2rem;
+    border-color: grey;
+    margin-left: 25%;
+    margin-right: 30%;
+    margin-top: 15%;
+}
+
+.tabla_azul{
+    background-color: #9ec5fe;
+}
+
+.tabla_azul td{
+    background-color:#f2f2f2;
+}
+
+.menor{
+    background-color: rgb(122, 170, 142);
+}
+.mayor{
+    background-color: rgb(177, 125, 125);
+}
